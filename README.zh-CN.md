@@ -2,8 +2,8 @@
 
 [English](README.md) · **中文**
 
-一个针对 AArch64（ARM64）ELF 的**函数分析器**。只需给它一个目标 ELF，它就能还原
-其中的函数，并为每个函数生成分析信息：
+一个针对 AArch64（ARM64）ELF 的**函数分析器**。只需给它一个目标 ELF，它就能通过
+控制流分析还原其中的函数——为每个函数重建控制流图，并为每个函数生成分析信息：
 
 * **函数名** —— 导出符号名（C++ 符号会被 demangle 还原），无符号时用合成名
   `sub_<地址>`；
@@ -31,7 +31,6 @@ cmake --build build --config Release
 | `--no-eh-frame`       | 忽略 `.eh_frame` / `PT_GNU_EH_FRAME`。      |
 | `--no-entry`          | 忽略 ELF 入口点。                           |
 | `--no-recursive`      | 关闭递归下降遍历。                          |
-| `--no-linear`         | 关闭线性扫描回退。                          |
 | `--no-demangle`       | 保留 C++ 原始（mangled）符号名。            |
 | `-v` / `-q`           | 详细 / 安静日志（输出到 stderr）。          |
 

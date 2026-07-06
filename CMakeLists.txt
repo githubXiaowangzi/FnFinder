@@ -67,12 +67,16 @@ set(FNFINDER_SOURCES
   src/elf/elf_parser.cc
   src/symbol/itanium_demangler.cc
   src/symbol/name_resolver.cc
+  src/disasm/aarch64/aarch64_mnemonics.cc
   src/disasm/capstone_disassembler.cc
   src/analysis/code_map.cc
   src/analysis/eh_frame_parser.cc
   src/analysis/recursive_disassembler.cc
-  src/analysis/linear_sweep_scanner.cc
-  src/analysis/function_boundary_resolver.cc
+  src/analysis/control_flow/code_patterns.cc
+  src/analysis/control_flow/instruction_cache.cc
+  src/analysis/control_flow/control_flow_graph.cc
+  src/analysis/control_flow/cfg_builder.cc
+  src/analysis/control_flow/function_extent_analyzer.cc
   src/analysis/function_analyzer.cc
   src/app/result_printer.cc)
 

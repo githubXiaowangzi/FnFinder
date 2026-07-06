@@ -1,19 +1,11 @@
 #include "symbol/itanium_demangler.h"
 
 #include <cctype>
-#include <cstdlib>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "common/string_util.h"
-
-#if defined(__has_include)
-#if __has_include(<cxxabi.h>)
-#define FNFINDER_HAVE_CXXABI 1
-#include <cxxabi.h>
-#endif
-#endif
 
 namespace fnfinder::symbol {
 namespace {
@@ -21,20 +13,6 @@ namespace {
 bool looksMangled(const std::string& name) {
   return strutil::startsWith(name, "_Z") || strutil::startsWith(name, "___Z");
 }
-
-#if defined(FNFINDER_HAVE_CXXABI)
-std::string demangleWithAbi(const std::string& mangled) {
-  int status = 0;
-  char* out = abi::__cxa_demangle(mangled.c_str(), nullptr, nullptr, &status);
-  if (status != 0 || out == nullptr) {
-    std::free(out);
-    return {};
-  }
-  std::string result(out);
-  std::free(out);
-  return result;
-}
-#endif
 
 constexpr int kMaxDepth = 256;
 
@@ -629,13 +607,6 @@ std::string ItaniumDemangler::demangle(const std::string& mangled) const {
   if (mangled.empty() || !looksMangled(mangled)) {
     return mangled;
   }
-
-#if defined(FNFINDER_HAVE_CXXABI)
-  std::string viaAbi = demangleWithAbi(mangled);
-  if (!viaAbi.empty()) {
-    return viaAbi;
-  }
-#endif
 
   std::string viaFallback = demangleItaniumFallback(mangled);
   if (!viaFallback.empty()) {

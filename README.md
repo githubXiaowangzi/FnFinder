@@ -3,7 +3,8 @@
 **English** · [中文](README.zh-CN.md)
 
 An AArch64 (ARM64) ELF **function analyser**. Given only a target ELF, it
-recovers the functions in it and generates, for each one:
+recovers the functions in it via control-flow analysis and generates, for each
+one:
 
 * **name** — the exported/symbol name (C++ names are demangled), or a synthetic
   `sub_<ADDRESS>` when no symbol is available;
@@ -31,7 +32,6 @@ cmake --build build --config Release
 | `--no-eh-frame`     | Ignore `.eh_frame` / `PT_GNU_EH_FRAME`.            |
 | `--no-entry`        | Ignore the ELF entry point.                         |
 | `--no-recursive`    | Disable recursive-descent traversal.                |
-| `--no-linear`       | Disable the linear-sweep fallback.                  |
 | `--no-demangle`     | Keep raw (mangled) C++ names.                       |
 | `-v` / `-q`         | Verbose / quiet logging (stderr).                   |
 

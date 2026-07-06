@@ -10,7 +10,6 @@ struct AnalysisOptions {
   bool useEhFrame = true;
   bool useEntryPoint = true;
   bool useRecursive = true;
-  bool useLinearSweep = true;
 
   bool demangle = true;
 

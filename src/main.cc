@@ -34,7 +34,6 @@ void printUsage(const char* program) {
       << "  --no-eh-frame        Do not use .eh_frame / PT_GNU_EH_FRAME.\n"
       << "  --no-entry           Do not seed from the ELF entry point.\n"
       << "  --no-recursive       Disable recursive-descent traversal.\n"
-      << "  --no-linear          Disable the linear-sweep fallback.\n"
       << "  --no-demangle        Keep raw (mangled) C++ symbol names.\n"
       << "  -v, --verbose        Verbose (debug) logging to stderr.\n"
       << "  -q, --quiet          Errors only.\n"
@@ -59,8 +58,6 @@ CommandLine parseCommandLine(int argc, char** argv) {
       cli.options.useEntryPoint = false;
     } else if (arg == "--no-recursive") {
       cli.options.useRecursive = false;
-    } else if (arg == "--no-linear") {
-      cli.options.useLinearSweep = false;
     } else if (arg == "--no-demangle") {
       cli.options.demangle = false;
     } else if (arg == "-v" || arg == "--verbose") {

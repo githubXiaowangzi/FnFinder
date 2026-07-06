@@ -1,7 +1,0 @@
-F:/ELF/FnFinder/build/CMakeFiles/fnfinder_core.dir
-F:/ELF/FnFinder/build/CMakeFiles/FnFinder.dir
-F:/ELF/FnFinder/build/CMakeFiles/edit_cache.dir
-F:/ELF/FnFinder/build/CMakeFiles/rebuild_cache.dir
-F:/ELF/FnFinder/build/external/capstone/CMakeFiles/capstone.dir
-F:/ELF/FnFinder/build/external/capstone/CMakeFiles/edit_cache.dir
-F:/ELF/FnFinder/build/external/capstone/CMakeFiles/rebuild_cache.dir

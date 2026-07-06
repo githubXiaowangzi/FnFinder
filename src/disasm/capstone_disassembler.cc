@@ -3,21 +3,10 @@
 #include <string>
 
 #include "common/exception.h"
-#include "common/string_util.h"
+#include "disasm/aarch64/aarch64_mnemonics.h"
 #include "disasm/capstone_compat.h"
 
 namespace fnfinder::disasm {
-namespace {
-
-bool isConditionalMnemonic(const char* mnemonic) {
-  const std::string m = mnemonic;
-  if (strutil::startsWith(m, "b.")) {
-    return true;
-  }
-  return m == "cbz" || m == "cbnz" || m == "tbz" || m == "tbnz";
-}
-
-}
 
 CapstoneDisassembler::CapstoneDisassembler() {
   csh handle = 0;
@@ -85,19 +74,23 @@ void CapstoneDisassembler::classify(const void* rawInsn, Instruction& out) const
   const bool isCall = cs_insn_group(handle, insn, CS_GRP_CALL);
   const bool isRet = cs_insn_group(handle, insn, CS_GRP_RET);
   const bool isRelative = cs_insn_group(handle, insn, CS_GRP_BRANCH_RELATIVE);
-  const bool isConditional = isConditionalMnemonic(insn->mnemonic);
   const std::string mnemonic = insn->mnemonic;
 
-  if (isRet || mnemonic == "eret") {
+  if (isRet || aarch64::isReturn(mnemonic)) {
     out.flow = FlowType::kReturn;
+  } else if (aarch64::isIndirectCall(mnemonic)) {
+    out.flow = FlowType::kIndirectCall;
+  } else if (aarch64::isIndirectBranch(mnemonic)) {
+    out.flow = FlowType::kIndirectBranch;
   } else if (isCall) {
     out.flow = isRelative ? FlowType::kDirectCall : FlowType::kIndirectCall;
   } else if (isJump) {
     if (!isRelative) {
       out.flow = FlowType::kIndirectBranch;
     } else {
-      out.flow = isConditional ? FlowType::kConditionalBranch
-                               : FlowType::kUnconditionalBranch;
+      out.flow = aarch64::isConditionalBranch(mnemonic)
+                     ? FlowType::kConditionalBranch
+                     : FlowType::kUnconditionalBranch;
     }
   } else {
     out.flow = FlowType::kSequential;

@@ -7,9 +7,9 @@
 #include <vector>
 
 #include "analysis/code_map.h"
+#include "analysis/control_flow/function_extent_analyzer.h"
 #include "analysis/eh_frame_parser.h"
-#include "analysis/function_boundary_resolver.h"
-#include "analysis/linear_sweep_scanner.h"
+#include "analysis/function_bounds.h"
 #include "analysis/recursive_disassembler.h"
 #include "common/logger.h"
 #include "elf/elf_symbol.h"
@@ -68,6 +68,8 @@ AnalysisResult FunctionAnalyzer::analyze(const AnalysisOptions& options) const {
     }
   }
 
+  const std::set<Address> strongStarts = starts;
+
   std::map<Address, std::uint32_t> instructionSizes;
   RecursiveDisassembler recursive(codeMap, disassembler_, options.maxInstructions);
 
@@ -85,50 +87,27 @@ AnalysisResult FunctionAnalyzer::analyze(const AnalysisOptions& options) const {
     }
   }
 
-  FunctionBoundaryResolver resolver(codeMap);
-  if (options.useLinearSweep) {
-    std::vector<Address> sorted(starts.begin(), starts.end());
-    std::vector<FunctionBounds> preliminary =
-        resolver.resolve(sorted, authoritativeSizes, instructionSizes);
-
-    std::vector<AddressRange> covered;
-    covered.reserve(preliminary.size());
-    for (const FunctionBounds& b : preliminary) {
-      covered.emplace_back(b.start, b.end);
-    }
-
-    LinearSweepScanner sweeper(codeMap, disassembler_);
-    const std::vector<Address> swept = sweeper.scan(covered);
-
-    bool addedNew = false;
-    for (Address addr : swept) {
-      if (starts.find(addr) == starts.end()) {
-        addStart(addr);
-        addedNew = true;
-      }
-    }
-
-    if (addedNew && options.useRecursive) {
-      std::vector<Address> seeds(starts.begin(), starts.end());
-      RecursiveResult discovered = recursive.discover(seeds);
-      for (const auto& entry : discovered.instructionSizes) {
-        instructionSizes[entry.first] = entry.second;
-      }
-      for (Address start : discovered.functionStarts) {
-        addStart(start);
-      }
+  control_flow::FunctionExtentAnalyzer::Input cfInput;
+  cfInput.strongEntries.assign(strongStarts.begin(), strongStarts.end());
+  for (Address addr : starts) {
+    if (strongStarts.find(addr) == strongStarts.end()) {
+      cfInput.softEntries.push_back(addr);
     }
   }
+  cfInput.authoritativeSizes = authoritativeSizes;
 
-  std::vector<Address> sortedStarts(starts.begin(), starts.end());
+  control_flow::FunctionExtentAnalyzer::Options cfOptions;
+  cfOptions.maxInstructions = options.maxInstructions;
+
+  control_flow::FunctionExtentAnalyzer extentAnalyzer(codeMap, disassembler_);
   const std::vector<FunctionBounds> bounds =
-      resolver.resolve(sortedStarts, authoritativeSizes, instructionSizes);
+      extentAnalyzer.analyze(cfInput, cfOptions);
 
   const auto lastInstructionOf = [&](Address start, Address end) -> Address {
     auto it = instructionSizes.lower_bound(end);
     if (it != instructionSizes.begin()) {
       --it;
-      if (it->first >= start) {
+      if (it->first >= start && it->first + it->second == end) {
         return it->first;
       }
     }
