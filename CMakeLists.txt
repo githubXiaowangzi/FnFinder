@@ -96,8 +96,15 @@ endif()
 add_executable(FnFinder src/main.cc)
 target_link_libraries(FnFinder PRIVATE fnfinder_core)
 
-# On MinGW, statically link the C++/GCC runtimes so the executable does not pick
-# up an incompatible libstdc++/libgcc DLL from PATH at runtime.
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND WIN32)
-  target_link_options(FnFinder PRIVATE -static -static-libgcc -static-libstdc++)
+# Statically link the C++/GCC runtimes so the executable does not depend on a
+# matching libstdc++/libgcc at runtime.
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  if(WIN32)
+    # MinGW: fully static so it does not pick up an incompatible DLL from PATH.
+    target_link_options(FnFinder PRIVATE -static -static-libgcc -static-libstdc++)
+  else()
+    # Linux: static libstdc++/libgcc for portability to older distros
+    # (glibc stays dynamic).
+    target_link_options(FnFinder PRIVATE -static-libgcc -static-libstdc++)
+  endif()
 endif()

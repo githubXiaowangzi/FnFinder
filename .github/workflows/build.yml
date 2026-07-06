@@ -1,0 +1,31 @@
+name: Build (Ubuntu 24.04)
+
+# Manual trigger only.
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends cmake ninja-build g++
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: FnFinder-ubuntu-24.04
+          path: build/FnFinder
+          if-no-files-found: error
