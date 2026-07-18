@@ -12,9 +12,12 @@ jobs:
 
     steps:
       - name: Install deps (container)
+        env:
+          DEBIAN_FRONTEND: noninteractive
+          TZ: Asia/Shanghai
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends git ca-certificates cmake ninja-build g++ libc6-dev
+          apt-get install -y --no-install-recommends tzdata git ca-certificates cmake ninja-build g++ libc6-dev
 
       - name: Checkout
         uses: actions/checkout@v4
