@@ -1,4 +1,4 @@
-name: Build (Ubuntu 24.04)
+name: Build for Linux (glibc 2.31 compatible)
 
 # Manual trigger only.
 on:
@@ -6,16 +6,19 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
+
+    # 用 Ubuntu 20.04 容器编译，glibc 版本低，兼容性更好
+    container: ubuntu:20.04
 
     steps:
+      - name: Install deps (container)
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends git ca-certificates cmake ninja-build g++
+
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Install build tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends cmake ninja-build g++
 
       - name: Configure
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
@@ -23,9 +26,15 @@ jobs:
       - name: Build
         run: cmake --build build --parallel
 
+      - name: Check glibc version used
+        run: |
+          ldd --version | head -1
+          echo "---"
+          ldd build/FnFinder
+
       - name: Upload executable
         uses: actions/upload-artifact@v4
         with:
-          name: FnFinder-ubuntu-24.04
+          name: FnFinder-linux
           path: build/FnFinder
           if-no-files-found: error
