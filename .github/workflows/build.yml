@@ -1,4 +1,4 @@
-name: Build for Linux (glibc 2.31 compatible)
+name: Build for Linux (fully static)
 
 # Manual trigger only.
 on:
@@ -8,29 +8,32 @@ jobs:
   build:
     runs-on: ubuntu-22.04
 
-    # 用 Ubuntu 20.04 容器编译，glibc 版本低，兼容性更好
     container: ubuntu:20.04
 
     steps:
       - name: Install deps (container)
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends git ca-certificates cmake ninja-build g++
+          apt-get install -y --no-install-recommends git ca-certificates cmake ninja-build g++ libc6-dev
 
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Configure
-        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+        run: >
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++"
 
       - name: Build
         run: cmake --build build --parallel
 
-      - name: Check glibc version used
+      - name: Verify binary
         run: |
-          ldd --version | head -1
+          file build/FnFinder
           echo "---"
-          ldd build/FnFinder
+          # Static binary should show "statically linked"
+          ldd build/FnFinder 2>&1 | head -3
 
       - name: Upload executable
         uses: actions/upload-artifact@v4
