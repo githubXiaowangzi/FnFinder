@@ -17,7 +17,7 @@ jobs:
           TZ: Asia/Shanghai
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends tzdata git ca-certificates cmake ninja-build g++ libc6-dev
+          apt-get install -y --no-install-recommends tzdata git ca-certificates cmake ninja-build g++ libc6-dev file
 
       - name: Checkout
         uses: actions/checkout@v4
